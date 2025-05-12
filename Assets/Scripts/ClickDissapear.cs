@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class ClickDissapear : MonoBehaviour
 {
@@ -13,6 +12,7 @@ public class ClickDissapear : MonoBehaviour
     private Transform player;
     private Renderer objectRenderer;
     private Material objectMaterial;
+    private CollectibleManager manager;
 
     void Start()
     {
@@ -28,6 +28,8 @@ public class ClickDissapear : MonoBehaviour
             Debug.LogWarning("Gracz (tag: Player) nie zosta³ znaleziony!");
         }
 
+        manager = Object.FindAnyObjectByType<CollectibleManager>();
+
         objectRenderer = GetComponent<Renderer>();
         if (objectRenderer != null)
         {
@@ -39,7 +41,6 @@ public class ClickDissapear : MonoBehaviour
     {
         if (player == null || objectMaterial == null) return;
 
-        // Sprawdzamy, czy gracz jest w zasiêgu interakcji
         float distance = Vector3.Distance(startPosition, player.position);
         bool nowInRange = distance <= interactionRange;
 
@@ -52,30 +53,20 @@ public class ClickDissapear : MonoBehaviour
 
     void UpdateHighlight(bool highlight)
     {
-        if (highlight)
-        {
-            objectMaterial.color = highlightColor;
-        }
-        else
-        {
-            objectMaterial.color = defaultColor;
-        }
+        objectMaterial.color = highlight ? highlightColor : defaultColor;
     }
 
     void OnMouseDown()
     {
-        // Zablokowanie klikniêcia gracza
         ClickManager.clickBlocked = true;
 
-        if (player == null)
-            return;
+        if (player == null) return;
 
-        // Sprawdzamy, czy gracz jest w zasiêgu interakcji
         float distance = Vector3.Distance(startPosition, player.position);
         if (distance <= interactionRange)
         {
-            // Znikniêcie obiektu
-            gameObject.SetActive(false); // Mo¿esz te¿ u¿yæ Destroy(gameObject);
+            if (manager != null) manager.Collect();
+            Destroy(gameObject);
         }
         else
         {
