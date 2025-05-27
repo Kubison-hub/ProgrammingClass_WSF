@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public class PlayerMovement : MonoBehaviour
 {
-    NavMeshAgent agent;
+    private NavMeshAgent agent;
 
     void Start()
     {
@@ -14,17 +14,33 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Jeœli klikniêcie zosta³o zablokowane przez inny obiekt, nie poruszaj gracza
+        // Jeœli klikniêcie zosta³o chwilowo zablokowane (np. animacja œciany), nie wykonuj ruchu
         if (ClickManager.clickBlocked)
             return;
 
+        // Sprawdzenie klikniêcia myszk¹
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))
             {
-                agent.SetDestination(hit.point);
+                Vector3 clickPoint = hit.point;
+
+                // Utworzenie i sprawdzenie œcie¿ki
+                NavMeshPath path = new NavMeshPath();
+                if (NavMesh.CalculatePath(agent.transform.position, clickPoint, NavMesh.AllAreas, path))
+                {
+                    if (path.status == NavMeshPathStatus.PathComplete)
+                    {
+                        agent.SetDestination(clickPoint);
+                    }
+                    else
+                    {
+                        Debug.Log("Brak dostêpnej œcie¿ki – cel zablokowany.");
+                    }
+                }
             }
         }
     }
